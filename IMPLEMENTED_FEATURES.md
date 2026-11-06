@@ -172,7 +172,7 @@ Replace the current rounded pill-shaped bottom nav with the clean flat icon-base
 - [x] Đổi keypad thành lưới phím phân tách bằng viền mảnh; giữ 5 nút chọn muscle xếp dọc bên phải và bảo toàn luồng nhập/lưu hiện tại.
 - [x] Đổi web bottom navigation sang thanh phẳng có icon Dashboard, Home và History; làm phẳng native tab indicator và giữ routing.
 - [x] Chạy lint và TypeScript check; kiểm tra web ở 360x800 và thao tác nhập/xóa.
-- **Trạng thái:** Đã implement; lint, TypeScript và web preview đạt.
+- **Trạng thái:** Đã implement và được người dùng duyệt; lint, TypeScript và web preview đạt. Android device check được theo dõi riêng ở UI-02.
 
 ## 14. UI UX update part 2
 
@@ -221,7 +221,45 @@ The layout still feels unbalanced: the keypad section is too tall/large, and the
 - [x] Giảm chiều cao action grid theo viewport; giữ 12 phím chia đều và 5 muscle buttons bằng đúng chiều cao keypad.
 - [x] Căn readout gần action grid, không để số 0 trôi giữa các phần.
 - [x] Kiểm tra viewport 360x800 và màn hình thấp; chạy lint và TypeScript.
-- **Trạng thái:** Đã implement; lint, TypeScript và web preview đạt. Cần xác minh riêng trên Android.
+- **Trạng thái:** Đã implement và được người dùng duyệt; kiểm tra Android theo UI-02.
+
+
+## Question
+1. Trường hợp khi người dùng nhập số rep và bấm vào Icon Arm -> rep đó được tính cho arm, nhưng mà người dùng nhầm đó nên là chest: Vậy đối với trường hợp này nên xử lý thế nào để người dùng có thể chỉnh sửa
+2. Trường hợp người dùng tập buổi sáng khi tập xong bấm dấu tick -> hoàn thành, nhưng tối đó người dùng vẫn đi tập tiếp và muốn mọi thứ reset về lúc ban đầu -> bản ghi ngày hôm đó sẽ chứa cả 2 buổi tập
+3. Đố với tab history người dùng muốn tự xóa các bản ghi: Nên cập nhật tính năng này
+
+### Hành vi đã chốt
+
+- Entry chọn nhầm nhóm cơ có thể đổi nhóm trong History; reps và thời điểm ghi được giữ nguyên.
+- Ngay sau khi chọn muscle trên Home, phím `⌫` khi ô nhập trống sẽ hoàn tác entry vừa ghi, khôi phục reps để chọn lại; nhập reps mới sẽ kết thúc khả năng hoàn tác nhanh.
+- Dấu tick chỉ xác nhận số reps, không kết thúc buổi tập. Chọn muscle mới lưu entry và xóa buffer nhập; các entry ở buổi sau tiếp tục được cộng vào cùng ngày.
+- History xóa từng entry hoặc xóa toàn bộ entry trong một ngày sau bước xác nhận; không phân loại riêng theo buổi tập.
+
+### Kế hoạch implement Question
+
+- [x] Bổ sung thao tác đổi muscle cho từng entry trong History; giữ nguyên reps, ngày và thời gian.
+- [x] Bổ sung xóa từng entry trong History; yêu cầu xác nhận trước khi xóa và cập nhật tổng ngay sau khi lưu.
+- [x] Làm rõ rằng dấu tick chỉ xác nhận reps; entry được ghi khi chọn muscle. Nhiều buổi trong cùng ngày cùng xuất hiện dưới ngày đó và được cộng vào tổng ngày.
+- [x] Chạy lint, TypeScript và kiểm tra diff.
+- **Trạng thái:** Done; lint, TypeScript và diff check đạt. Browser preview offline nên chưa xác minh tương tác trực quan.
+
+### Kế hoạch: hoàn tác ngay trên Home
+
+- [x] Lưu entry được thêm gần đây trong Home; phím `⌫` khi input trống sẽ xóa entry đó và khôi phục reps.
+- [x] Cập nhật Home summary và total từ danh sách entries sau hoàn tác; cho phép chọn lại muscle.
+- [x] Hiển thị rõ thao tác undo và lỗi lưu/xóa; nhập reps mới sẽ bỏ undo nhanh.
+- [x] Chạy TypeScript, lint, diff check và web interaction test.
+- **Trạng thái:** Done; TypeScript, Expo lint, diff check và web flow nhập → ghi → hoàn tác → chọn nhóm khác → hoàn tác đạt.
+
+### Kế hoạch: xóa toàn bộ bản ghi trong ngày
+
+- [x] Thêm thao tác xóa ngày trong History, hiển thị số entry và tổng reps để xác nhận.
+- [x] Xóa mọi entry thuộc ngày đã chọn, cập nhật History và tổng sau khi lưu.
+- [x] Chạy TypeScript, lint và diff check.
+- [ ] Kiểm tra luồng trực quan trên web; preview offline, chờ chạy lại Metro.
+- **Trạng thái:** Implement xong; TypeScript, Expo lint và diff check đạt. Web interaction test chưa chạy do preview offline.
+
 
 ## Backlog implement để review trước
 
@@ -250,7 +288,7 @@ The layout still feels unbalanced: the keypad section is too tall/large, and the
 - **Hiện trạng:** Home dùng chiều cao action theo `windowHeight`; keypad và muscle actions có chiều cao bằng nhau. Người dùng đã duyệt giao diện Home.
 - **Phạm vi:** Hoàn tất cân chỉnh Home; kiểm tra device-native tiếp tục riêng trong UI-02.
 - **Nghiệm thu:** Web preview xác nhận keypad và action list đồng chiều cao, mọi phím/nút truy cập được; thiết kế Home được người dùng chấp thuận.
-- **Phụ thuộc:** UI-02.
+- **Phụ thuộc:** Không. Android device check được theo dõi riêng ở UI-02.
 - **Trạng thái:** Done; Android device check được theo dõi riêng ở UI-02.
 
 #### UI-04 - Hoàn thiện kích thước và hierarchy của Home
@@ -258,7 +296,7 @@ The layout still feels unbalanced: the keypad section is too tall/large, and the
 - **Hiện trạng:** UX-13 bỏ card Current Input; Home dùng readout phẳng, total 104px có padding phải và đổi đỏ/xanh theo ngưỡng 500. Người dùng đã duyệt giao diện.
 - **Phạm vi:** Hoàn thiện hierarchy Home; kiểm tra Android-native tiếp tục riêng trong UI-02.
 - **Nghiệm thu:** Readout phía trên keypad; total 104px, đỏ dưới 500 và xanh lá từ 500; keypad 3x4; 5 muscle action đúng thứ tự.
-- **Phụ thuộc:** UI-02, UI-03.
+- **Phụ thuộc:** UI-03.
 - **Trạng thái:** Done; Android device check được theo dõi riêng ở UI-02.
 
 ### P1 - Chốt tương tác và asset
@@ -362,3 +400,6 @@ The layout still feels unbalanced: the keypad section is too tall/large, and the
 | Implement | UX part 3 | Cân lại chiều cao summary/action và đặt input readout gần keypad. TypeScript, lint, web viewport và cuộn màn hình thấp đạt; giao diện Home được người dùng duyệt. |
 | Điều chỉnh | UX part 3 | Thu summary xuống 164dp và input readout còn 36dp để giảm khoảng cách từ header đến keypad theo phản hồi giao diện. |
 | Duyệt | Home UI | Người dùng xác nhận giao diện Home hoàn tất; UI-03/UI-04 đánh dấu done. Android device/emulator check vẫn mở tại UI-02. |
+| Implement | Question | History cho phép đổi muscle và xóa từng entry có xác nhận; các entry cùng ngày tiếp tục cộng chung. TypeScript, lint và diff check đạt; browser preview offline nên chưa xác minh trực quan. |
+| Implement | Home undo | Phím `⌫` hoàn tác entry vừa ghi khi input trống, khôi phục reps và cập nhật tổng; nhập reps mới đóng undo nhanh. TypeScript, lint, diff check và web interaction flow đạt. |
+| Implement | Xóa ngày trong History | Thêm xác nhận xóa toàn bộ entry của ngày, nêu số entry/tổng reps; lọc ngày khỏi storage và cập nhật giao diện. TypeScript, lint, diff check đạt; preview offline nên chưa kiểm tra trực quan. |

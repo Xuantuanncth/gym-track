@@ -62,6 +62,36 @@ export async function addEntry(muscleId: MuscleId, reps: number) {
   return entry;
 }
 
+export async function updateEntryMuscle(entryId: string, muscleId: MuscleId) {
+  const entries = await loadEntries();
+  if (!entries.some((entry) => entry.id === entryId)) {
+    throw new Error(`Workout entry not found: ${entryId}`);
+  }
+  const updatedEntries = entries.map((entry) =>
+    entry.id === entryId ? { ...entry, muscleId } : entry,
+  );
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+  return updatedEntries.find((entry) => entry.id === entryId)!;
+}
+
+export async function deleteEntry(entryId: string) {
+  const entries = await loadEntries();
+  if (!entries.some((entry) => entry.id === entryId)) {
+    throw new Error(`Workout entry not found: ${entryId}`);
+  }
+  const updatedEntries = entries.filter((entry) => entry.id !== entryId);
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+}
+
+export async function deleteEntriesForDate(date: string) {
+  const entries = await loadEntries();
+  const updatedEntries = entries.filter((entry) => entry.date !== date);
+  if (updatedEntries.length === entries.length) {
+    throw new Error(`Workout entries not found for date: ${date}`);
+  }
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+}
+
 export function totalsForDate(entries: WorkoutEntry[], date: string) {
   return MUSCLE_GROUPS.reduce<Record<MuscleId, number>>(
     (totals, muscle) => {

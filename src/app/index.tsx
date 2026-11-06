@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, MaxContentWidth, WebTabInset } from '@/constants/theme';
 import {
   addEntry,
+  deleteEntry,
   getLocalDate,
   loadEntries,
   MUSCLE_GROUPS,
@@ -36,32 +37,68 @@ export default function HomeScreen() {
   const [input, setInput] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [entries, setEntries] = useState<WorkoutEntry[]>([]);
+  const [lastAddedEntry, setLastAddedEntry] = useState<WorkoutEntry | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [undoing, setUndoing] = useState(false);
   const date = getLocalDate();
   const totals = totalsForDate(entries, date);
   const actionHeight = Math.min(360, Math.max(240, windowHeight * 0.4));
   const summaryHeight = Math.min(220, Math.max(164, windowHeight * 0.3));
 
   useEffect(() => {
-    loadEntries().then(setEntries);
+    loadEntries()
+      .then(setEntries)
+      .catch(() => setActionError('Could not load workout entries.'));
   }, []);
 
   function pressKey(key: string) {
     if (key === '✓') return setConfirmed(true);
     if (key === '⌫') {
       setConfirmed(false);
+      if (!input && lastAddedEntry) {
+        void undoLastEntry();
+        return;
+      }
       return setInput((value) => value.slice(0, -1));
     }
     setConfirmed(false);
-    if (input.length < 3) setInput((value) => (value === '0' ? key : value + key));
+    if (input.length < 3) {
+      setLastAddedEntry(null);
+      setActionError(null);
+      setInput((value) => (value === '0' ? key : value + key));
+    }
+  }
+
+  async function undoLastEntry() {
+    if (!lastAddedEntry || undoing) return;
+    setUndoing(true);
+    setActionError(null);
+    try {
+      await deleteEntry(lastAddedEntry.id);
+      setEntries((current) => current.filter((entry) => entry.id !== lastAddedEntry.id));
+      setInput(String(lastAddedEntry.reps));
+      setConfirmed(false);
+      setLastAddedEntry(null);
+    } catch {
+      setActionError('Could not undo last entry. Please try again.');
+    } finally {
+      setUndoing(false);
+    }
   }
 
   async function assign(muscleId: MuscleId) {
     const reps = Number(input);
     if (!Number.isInteger(reps) || reps < 1 || reps > 999) return;
-    const entry = await addEntry(muscleId, reps);
-    setEntries((current) => [...current, entry]);
-    setInput('');
-    setConfirmed(false);
+    setActionError(null);
+    try {
+      const entry = await addEntry(muscleId, reps);
+      setEntries((current) => [...current, entry]);
+      setLastAddedEntry(entry);
+      setInput('');
+      setConfirmed(false);
+    } catch {
+      setActionError('Could not save reps. Please try again.');
+    }
   }
 
   return (
@@ -102,12 +139,17 @@ export default function HomeScreen() {
         <View style={styles.actionSection}>
           <View style={styles.inputReadout}>
             <TextLabel style={styles.inputHint}>
-              {input ? (confirmed ? 'READY TO ASSIGN' : 'REPS') : 'ENTER REPS'}
+              {input
+                ? (confirmed ? 'READY TO ASSIGN' : 'REPS')
+                : lastAddedEntry
+                  ? 'WRONG GROUP? TAP ⌫ TO UNDO'
+                  : 'ENTER REPS'}
             </TextLabel>
             <TextLabel accessibilityLiveRegion="polite" style={styles.inputValue}>
               {input || '0'}
             </TextLabel>
           </View>
+          {actionError && <TextLabel style={styles.actionError}>{actionError}</TextLabel>}
 
           <View style={[styles.actionGrid, { height: actionHeight }]}>
             <View style={styles.keypad}>
@@ -117,7 +159,16 @@ export default function HomeScreen() {
                     <Pressable
                       key={key}
                       accessibilityRole="button"
-                      accessibilityLabel={key === '✓' ? 'Confirm reps' : key === '⌫' ? 'Delete last digit' : key}
+                      accessibilityLabel={
+                        key === '✓'
+                          ? 'Confirm reps'
+                          : key === '⌫'
+                            ? !input && lastAddedEntry
+                              ? 'Undo last entry'
+                              : 'Delete last digit'
+                            : key
+                      }
+                      disabled={undoing}
                       onPress={() => pressKey(key)}
                       onLongPress={key === '⌫' ? () => { setInput(''); setConfirmed(false); } : undefined}
                       style={({ pressed }) => [
@@ -140,6 +191,7 @@ export default function HomeScreen() {
                     key={muscle.id}
                     accessibilityRole="button"
                     accessibilityLabel={`Add ${input || 0} reps to ${muscle.name}`}
+                    disabled={undoing}
                     onPress={() => assign(muscle.id)}
                     style={({ pressed }) => [styles.muscleAction, pressed && styles.musclePressed]}>
                     <Image source={muscleIcons[muscle.id]} style={styles.actionIcon} resizeMode="contain" />
@@ -193,6 +245,7 @@ const styles = StyleSheet.create({
   inputReadout: { height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, marginBottom: 2 },
   inputHint: { color: Colors.light.muted, fontSize: 15, fontWeight: '800' },
   inputValue: { color: Colors.light.ink, fontSize: 30, lineHeight: 28, fontWeight: '800' },
+  actionError: { color: '#B3261E', fontSize: 12, paddingHorizontal: 8, marginBottom: 4 },
   keypad: { flex: 1.55, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D8DDD8', overflow: 'hidden', flexDirection: 'column' },
   keypadRow: { flex: 1, flexDirection: 'row' },
   key: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.light.background },
