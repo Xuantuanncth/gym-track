@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, BottomTabInset, MaxContentWidth } from '@/constants/theme';
+import { Colors, BottomTabInset, MaxContentWidth, WebTabInset } from '@/constants/theme';
 import { loadEntries, MUSCLE_GROUPS, totalForDate, totalsForDate, type WorkoutEntry } from '@/data/gym-storage';
 
 export default function HistoryScreen() {
@@ -86,7 +86,7 @@ function formatTime(value: string) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.light.background },
-  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', padding: 20, paddingBottom: BottomTabInset + 32 },
+  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', padding: 20, paddingBottom: BottomTabInset + WebTabInset + 32 },
   eyebrow: { color: Colors.light.accent, fontSize: 12, fontWeight: '800', letterSpacing: 2 },
   title: { color: Colors.light.ink, fontSize: 42, fontWeight: '800', marginTop: 5 },
   subtitle: { color: Colors.light.muted, fontSize: 14, marginTop: 7, marginBottom: 26 },

@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, MaxContentWidth } from '@/constants/theme';
+import { Colors, MaxContentWidth, WebTabInset } from '@/constants/theme';
 import {
   addEntry,
   getLocalDate,
@@ -38,7 +38,8 @@ export default function HomeScreen() {
   const [entries, setEntries] = useState<WorkoutEntry[]>([]);
   const date = getLocalDate();
   const totals = totalsForDate(entries, date);
-  const actionHeight = Math.min(480, Math.max(350, windowHeight * 0.58));
+  const actionHeight = Math.min(360, Math.max(240, windowHeight * 0.4));
+  const summaryHeight = Math.min(220, Math.max(164, windowHeight * 0.3));
 
   useEffect(() => {
     loadEntries().then(setEntries);
@@ -66,14 +67,17 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.summary}>
+        <View style={[styles.summary, { minHeight: summaryHeight }]}>
           <View style={styles.summaryList}>
             {primaryMuscles.map((muscleId) => {
               const muscle = MUSCLE_GROUPS.find((item) => item.id === muscleId)!;
               return (
-                <View key={muscle.id} style={styles.summaryRow}>
+                <View
+                  key={muscle.id}
+                  accessible
+                  accessibilityLabel={`${muscle.name}, ${totals[muscle.id]} reps`}
+                  style={styles.summaryRow}>
                   <Image source={muscleIcons[muscle.id]} style={styles.summaryIcon} resizeMode="contain" />
-                  <TextLabel style={styles.summaryName}>{muscle.name}</TextLabel>
                   <TextLabel style={styles.summaryReps}>{totals[muscle.id]}</TextLabel>
                 </View>
               );
@@ -81,51 +85,69 @@ export default function HomeScreen() {
           </View>
           <View style={styles.totalPanel}>
             <TextLabel style={styles.date}>{formatDate(date)}</TextLabel>
-            <TextLabel style={styles.totalNumber}>{totalForDate(entries, date)}</TextLabel>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+              style={[
+                styles.totalNumber,
+                { color: totalForDate(entries, date) < 500 ? '#E53935' : '#7CB342' },
+              ]}>
+              {totalForDate(entries, date)}
+            </Text>
             <TextLabel style={styles.totalLabel}>TOTAL REPS</TextLabel>
-            <View style={styles.inputPanel}>
-              <TextLabel style={styles.inputCaption}>CURRENT INPUT</TextLabel>
-              <TextLabel style={styles.inputValue}>{input || '0'}</TextLabel>
-              <TextLabel style={styles.inputHint}>
-                {input ? (confirmed ? 'Ready to assign' : 'Tap a muscle to record') : 'Enter reps'}
-              </TextLabel>
-            </View>
           </View>
         </View>
 
-        <View style={[styles.actionGrid, { height: actionHeight }]}>
-          <View style={styles.keypad}>
-            {keypadRows.map((row, rowIndex) => (
-              <View key={rowIndex} style={styles.keypadRow}>
-                {row.map((key) => (
-                  <Pressable
-                    key={key}
-                    accessibilityRole="button"
-                    accessibilityLabel={key === '✓' ? 'Confirm reps' : key === '⌫' ? 'Delete last digit' : key}
-                    onPress={() => pressKey(key)}
-                    onLongPress={key === '⌫' ? () => { setInput(''); setConfirmed(false); } : undefined}
-                    style={({ pressed }) => [styles.key, pressed && styles.pressed]}>
-                    <TextLabel style={[styles.keyText, key === '✓' && styles.confirmText]}>{key}</TextLabel>
-                  </Pressable>
-                ))}
-              </View>
-            ))}
+        <View style={styles.actionSection}>
+          <View style={styles.inputReadout}>
+            <TextLabel style={styles.inputHint}>
+              {input ? (confirmed ? 'READY TO ASSIGN' : 'REPS') : 'ENTER REPS'}
+            </TextLabel>
+            <TextLabel accessibilityLiveRegion="polite" style={styles.inputValue}>
+              {input || '0'}
+            </TextLabel>
           </View>
-          <View style={styles.muscleActions}>
-            {primaryMuscles.map((muscleId) => {
-              const muscle = MUSCLE_GROUPS.find((item) => item.id === muscleId)!;
-              return (
-                <Pressable
-                  key={muscle.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Add ${input || 0} reps to ${muscle.name}`}
-                  onPress={() => assign(muscle.id)}
-                  style={({ pressed }) => [styles.muscleAction, pressed && styles.musclePressed]}>
-                  <Image source={muscleIcons[muscle.id]} style={styles.actionIcon} resizeMode="contain" />
-                  <TextLabel style={styles.muscleName}>{muscle.name}</TextLabel>
-                </Pressable>
-              );
-            })}
+
+          <View style={[styles.actionGrid, { height: actionHeight }]}>
+            <View style={styles.keypad}>
+              {keypadRows.map((row, rowIndex) => (
+                <View key={rowIndex} style={styles.keypadRow}>
+                  {row.map((key, columnIndex) => (
+                    <Pressable
+                      key={key}
+                      accessibilityRole="button"
+                      accessibilityLabel={key === '✓' ? 'Confirm reps' : key === '⌫' ? 'Delete last digit' : key}
+                      onPress={() => pressKey(key)}
+                      onLongPress={key === '⌫' ? () => { setInput(''); setConfirmed(false); } : undefined}
+                      style={({ pressed }) => [
+                        styles.key,
+                        rowIndex < keypadRows.length - 1 && styles.keyBottomBorder,
+                        columnIndex < row.length - 1 && styles.keyRightBorder,
+                        pressed && styles.keyPressed,
+                      ]}>
+                      <TextLabel style={[styles.keyText, key === '✓' && styles.confirmText]}>{key}</TextLabel>
+                    </Pressable>
+                  ))}
+                </View>
+              ))}
+            </View>
+            <View style={styles.muscleActions}>
+              {primaryMuscles.map((muscleId) => {
+                const muscle = MUSCLE_GROUPS.find((item) => item.id === muscleId)!;
+                return (
+                  <Pressable
+                    key={muscle.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Add ${input || 0} reps to ${muscle.name}`}
+                    onPress={() => assign(muscle.id)}
+                    style={({ pressed }) => [styles.muscleAction, pressed && styles.musclePressed]}>
+                    <Image source={muscleIcons[muscle.id]} style={styles.actionIcon} resizeMode="contain" />
+                    <TextLabel style={styles.muscleName}>{muscle.name}</TextLabel>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -133,8 +155,20 @@ export default function HomeScreen() {
   );
 }
 
-function TextLabel({ children, style }: { children: ReactNode; style?: object }) {
-  return <Text style={style}>{children}</Text>;
+function TextLabel({
+  children,
+  style,
+  accessibilityLiveRegion,
+}: {
+  children: ReactNode;
+  style?: object;
+  accessibilityLiveRegion?: 'none' | 'polite' | 'assertive';
+}) {
+  return (
+    <Text accessibilityLiveRegion={accessibilityLiveRegion} style={style}>
+      {children}
+    </Text>
+  );
 }
 
 function formatDate(date: string) {
@@ -144,31 +178,32 @@ function formatDate(date: string) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.light.background },
-  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, padding: 12, paddingBottom: 12 },
-  summary: { flexDirection: 'row', minHeight: 164, marginBottom: 10, gap: 8 },
-  summaryList: { flex: 1.1, justifyContent: 'center', gap: 2 },
-  summaryRow: { flexDirection: 'row', alignItems: 'center', minHeight: 22, gap: 6 },
-  summaryIcon: { width: 20, height: 20 },
-  summaryName: { flex: 1, color: Colors.light.ink, fontSize: 12, fontWeight: '600' },
-  summaryReps: { color: Colors.light.ink, fontSize: 15, fontWeight: '800' },
-  totalPanel: { flex: 0.9, alignItems: 'flex-end', justifyContent: 'center' },
-  date: { color: Colors.light.muted, fontSize: 12, fontWeight: '600', textAlign: 'right' },
-  totalNumber: { color: '#E53935', fontSize: 46, lineHeight: 52, fontWeight: '900', marginTop: 6 },
-  totalLabel: { color: Colors.light.muted, fontSize: 9, fontWeight: '800' },
-  inputPanel: { width: '100%', backgroundColor: Colors.light.ink, borderRadius: 8, paddingVertical: 4, paddingHorizontal: 8, alignItems: 'center', marginTop: 6 },
-  inputCaption: { color: '#A5ADA8', fontSize: 8, fontWeight: '800' },
-  inputValue: { color: Colors.light.white, fontSize: 25, lineHeight: 28, fontWeight: '800' },
-  inputHint: { color: '#A5ADA8', fontSize: 8, textAlign: 'center' },
-  actionGrid: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
-  keypad: { flex: 1.55, justifyContent: 'space-between', gap: 5 },
-  keypadRow: { flex: 1, flexDirection: 'row', gap: 4 },
-  key: { flex: 1, aspectRatio: 1, backgroundColor: '#F0F1EC', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  keyText: { color: Colors.light.ink, fontSize: 20, fontWeight: '700' },
+  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', flexGrow: 1, justifyContent: 'space-between', padding: 12, paddingBottom: 12 + WebTabInset },
+  summary: { flexDirection: 'row', marginBottom: 8, gap: 8 },
+  summaryList: { flex: 1, justifyContent: 'center', gap: 6 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', minHeight: 32, gap: 10, paddingHorizontal: 4 },
+  summaryIcon: { width: 45, height: 45 },
+  summaryReps: { color: Colors.light.ink, fontSize: 25, lineHeight: 28, fontWeight: '900' },
+  totalPanel: { flex: 1, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 16 },
+  date: { color: Colors.light.muted, fontSize: 20, fontWeight: '600', textAlign: 'right' },
+  totalNumber: { width: '100%', fontSize: 100, lineHeight: 112, fontWeight: '900', marginTop: 8, textAlign: 'right' },
+  totalLabel: { color: Colors.light.muted, fontSize: 20, fontWeight: '800' },
+  actionSection: { width: '100%' },
+  actionGrid: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  inputReadout: { height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, marginBottom: 2 },
+  inputHint: { color: Colors.light.muted, fontSize: 15, fontWeight: '800' },
+  inputValue: { color: Colors.light.ink, fontSize: 30, lineHeight: 28, fontWeight: '800' },
+  keypad: { flex: 1.55, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D8DDD8', overflow: 'hidden', flexDirection: 'column' },
+  keypadRow: { flex: 1, flexDirection: 'row' },
+  key: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.light.background },
+  keyBottomBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#D8DDD8' },
+  keyRightBorder: { borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: '#D8DDD8' },
+  keyText: { color: Colors.light.ink, fontSize: 30, fontWeight: '700' },
   confirmText: { color: '#2D7D46' },
-  pressed: { opacity: 0.65, transform: [{ scale: 0.97 }] },
-  muscleActions: { flex: 0.65, justifyContent: 'center', gap: 8 },
-  muscleAction: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 6, backgroundColor: '#E4F0E5', borderRadius: 7 },
-  actionIcon: { width: 16, height: 16 },
+  keyPressed: { opacity: 0.65, backgroundColor: '#E7EBE7' },
+  muscleActions: { flex: 0.65, gap: 4 },
+  muscleAction: { flex: 1, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 8, backgroundColor: '#E4F0E5', borderRadius: 4 },
+  actionIcon: { width: 30, height: 30 },
   musclePressed: { backgroundColor: '#CDE5D0', transform: [{ scale: 0.98 }] },
-  muscleName: { color: Colors.light.ink, fontSize: 11, fontWeight: '700' },
+  muscleName: { color: Colors.light.ink, fontSize: 12, fontWeight: '700' },
 });

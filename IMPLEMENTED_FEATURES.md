@@ -81,15 +81,16 @@ Mỗi nhóm cơ có:
 
 - [x] Thiết kế mobile-first.
 - [x] Bố cục Home theo mockup: daily summary phía trên, keypad và 5 muscle action theo hai cột.
-- [x] Current input đặt ở cột phải, ngay dưới daily total.
+- [x] Current input hiển thị phẳng phía trên keypad, không dùng card nổi.
 - [x] Keypad 3x4 được tăng kích thước; các hàng giãn theo chiều cao màn hình.
 - [x] Icon và nút muscle action thu gọn để ưu tiên không gian keypad.
 - [x] 5 muscle action chính theo thứ tự Arm, Chest, Leg, Back, Shoulder.
-- [x] Ngày hiển thị theo `dd-MMM-yyyy`; grand total dùng màu `#E53935`.
+- [x] Ngày hiển thị theo `dd-MMM-yyyy`; total reps dùng cỡ chữ 104px, đệm phải 16px, màu đỏ dưới 500 và xanh lá từ 500.
 - [x] Icon muscle lấy từ local assets trong `assets/icon/`.
 - [x] Có trạng thái nhấn cho keypad và muscle buttons.
 - [x] Có layout giới hạn chiều rộng để hiển thị tốt trên màn hình lớn.
 - [x] Có màu sắc riêng cho input panel, tổng reps, keypad và muscle actions.
+- [x] Home summary, keypad, muscle actions và total reps đã được người dùng duyệt về giao diện.
 - [x] Không dùng popup khi người dùng chọn muscle mà chưa nhập reps.
 
 ## 9. Validation đã thực hiện
@@ -146,7 +147,83 @@ Các hạng mục sau chưa được implement hoặc cần quyết định sả
 - [SRS v2.0](document/Software_requirement_specific/Gym_Track_SRS_v2.0.md)
 - [Design SRS v2.2](document/Software_requirement_specific/gym_track_detailed_design_srs.md)
 
-## 13. Backlog implement để review trước
+## 13. UX update
+"Please update the UI layout to precisely match the expected design (shown in the second image) with the following adjustments:
+
+Top Section Layout & Alignment:
+
+Place the 5 muscle group icons and their corresponding number values vertically on the left side (compact icon followed right next to the number text like [Icon] 30).
+
+Position the date (DD-MMM-YYYY) on the top right, and directly below it, display the Total Reps number in large bold red font (e.g., 150). Remove the floating black card (CURRENT INPUT) currently overlaying on the right.
+
+Keypad & Muscle Selector Layout:
+
+Change the keypad style from rounded gray cards into a clean grid layout separated by thin borders or a clean calculator-like keypad (columns [1, 2, 3], [4, 5, 6], [7, 8, 9], [Check, 0, Delete]).
+
+The right column of the keypad section must contain the 5 vertical muscle group selection buttons as shown in the expected design (icons only or small vertical card list).
+
+Bottom Navigation Bar:
+
+Replace the current rounded pill-shaped bottom nav with the clean flat icon-based navigation bar (Grid/Dashboard icon, Home icon, and List/History icon) matching the expected layout."
+
+### Kế hoạch implement UX-13
+
+- [x] Cập nhật Home: giữ 5 summary nhóm cơ ở trái; đặt ngày và tổng reps đỏ ở phải; bỏ card CURRENT INPUT nhưng vẫn hiển thị buffer nhập rõ ràng, không tạo card nổi.
+- [x] Đổi keypad thành lưới phím phân tách bằng viền mảnh; giữ 5 nút chọn muscle xếp dọc bên phải và bảo toàn luồng nhập/lưu hiện tại.
+- [x] Đổi web bottom navigation sang thanh phẳng có icon Dashboard, Home và History; làm phẳng native tab indicator và giữ routing.
+- [x] Chạy lint và TypeScript check; kiểm tra web ở 360x800 và thao tác nhập/xóa.
+- **Trạng thái:** Đã implement; lint, TypeScript và web preview đạt.
+
+## 14. UI UX update part 2
+
+I am building a React Native / Expo app optimized for a Samsung Galaxy S10 5G (6.7-inch screen, 1440x3040 resolution, 19:9 aspect ratio). Please fix and refine the layout based on the latest screenshot to perfectly match the expected design with the following detailed adjustments:
+
+1. Top-Left Muscle Group Rep Counters:
+- Increase the font size and make the rep numbers (e.g., 0) for each of the 5 muscle groups (Arm, Chest, Leg, Back, Shoulder) bold, prominent, and visually well-balanced.
+- Ensure the muscle icons and their corresponding number text are cleanly aligned (compact icon next to or above the number) with proper padding so they don't look too small or cramped.
+- Balance the spacing of this top-left section so it aligns harmoniously with the large "TOTAL REPS" display on the top-right.
+
+2. Keypad & Right-Side Muscle Selector Height Alignment:
+- Force the total height of the 3x4 keypad container (rows: 1-3, 4-6, 7-9, and Check-0-Delete) to match exactly the total height of the 5 vertical muscle selector buttons on the right.
+- Remove any uneven vertical gaps, awkward margins, or flex mismatches inside the keypad rows so the keypad elements fill their container uniformly and cleanly without stretching past the bottom.
+- Structure the 5 muscle selector items on the right as a tightly-spaced vertical list that stretches evenly alongside the keypad height.
+
+3. Cleanup & UI Polish:
+- Remove any floating settings buttons (like the floating blue gear icon) or overlapping absolute elements that interfere with the layout flow.
+- Ensure all margins, paddings, and proportions are tightly adapted to the Samsung S10 5G screen constraints.
+
+### Kế hoạch implement UX part 2
+
+- [x] Tăng cỡ icon và số reps của 5 nhóm cơ; căn giữa theo chiều dọc với vùng Total Reps.
+- [x] Đưa readout input ra ngoài action grid; làm keypad 3x4 và danh sách 5 muscle cùng chiếm đúng một chiều cao, chia hàng đều, không có khoảng hở hoặc tràn.
+- [x] Kiểm tra màn hình Home không có nút settings nổi; không sửa component animation/navigation không liên quan.
+- [x] Kiểm tra ở web viewport 360x800 và chạy lint cùng TypeScript.
+- **Trạng thái:** Đã implement và được người dùng duyệt; kiểm tra Android theo UI-02.
+
+## 15. Update UI UX part 3
+
+The layout still feels unbalanced: the keypad section is too tall/large, and the top section (muscle rep counters and total reps) takes up too little space. Please fix the proportions based on the latest screenshot for a Samsung S10 5G display:
+
+1. Rebalance Vertical Space & Proportions:
+- Reduce the overall height of the keypad container and its individual rows so it doesn't dominate the screen. The keypad and the 5 muscle selector buttons on the right should be more compact and neatly anchored toward the lower half.
+- Increase the visual weight, spacing, and vertical breathing room of the top section (both the 5 individual muscle rep rows on the top-left and the large "TOTAL REPS" red counter on the top-right) so the top and bottom halves look harmoniously balanced.
+
+2. Keypad Row & Button Sizing:
+- Adjust the padding and height inside the 3x4 keypad rows (1-3, 4-6, 7-9, Check-0-Delete) to be moderately sized instead of overly stretched vertically.
+- Ensure the right-side muscle selector buttons (Arm, Chest, Leg, Back, Shoulder) match the exact height of the keypad block cleanly without leaving awkward empty gaps.
+
+3. Fix Misplaced Elements:
+- Ensure the "0" input preview or prompt text above the keypad is neatly positioned without awkward floating spacing.
+
+### Kế hoạch implement UX part 3
+
+- [x] Tăng chiều cao và khoảng cách của summary để top section cân đối hơn với keypad.
+- [x] Giảm chiều cao action grid theo viewport; giữ 12 phím chia đều và 5 muscle buttons bằng đúng chiều cao keypad.
+- [x] Căn readout gần action grid, không để số 0 trôi giữa các phần.
+- [x] Kiểm tra viewport 360x800 và màn hình thấp; chạy lint và TypeScript.
+- **Trạng thái:** Đã implement; lint, TypeScript và web preview đạt. Cần xác minh riêng trên Android.
+
+## Backlog implement để review trước
 
 > Trạng thái ban đầu của tất cả ticket: **Chờ review**. Chưa bắt đầu sửa code các mục bên dưới cho đến khi thống nhất thứ tự/phạm vi. Các mã `UI-*`, `UX-*`, `TEST-*`, `FUTURE-*` dùng để theo dõi từng phần trong những lượt làm tiếp theo.
 
@@ -158,7 +235,7 @@ Các hạng mục sau chưa được implement hoặc cần quyết định sả
 - **Phạm vi:** Chỉnh container trong `src/components/app-tabs.web.tsx`; bảo đảm nội dung tab có khoảng trống tương ứng, không bị thanh tab che. Không thay đổi cách hoạt động của native tabs trên Android.
 - **Nghiệm thu:** Ở viewport 360x800 và màn hình desktop, thanh tab nằm ở cạnh dưới; Home summary không bị che; tab đang chọn được nhận diện rõ; cuộn History không phủ nội dung quan trọng dưới tab bar.
 - **Phụ thuộc:** Không.
-- **Trạng thái:** Chờ review.
+- **Trạng thái:** Đã implement; chờ xác minh trực quan trên web.
 
 #### UI-02 - Xác nhận giao diện trên Android thật/emulator
 
@@ -170,19 +247,19 @@ Các hạng mục sau chưa được implement hoặc cần quyết định sả
 
 #### UI-03 - Cân lại khoảng trống dọc trên Home
 
-- **Hiện trạng:** Ảnh preview còn vùng trống lớn dưới keypad. Kích thước action area đang dựa trên một tỷ lệ `windowHeight`, nhưng web viewport và Android usable height khác nhau do status bar, safe area và tab bar.
-- **Phạm vi:** Dựa trên capture Android của UI-02 để điều chỉnh chiều cao summary, input, keypad và muscle actions. Tránh kéo dài các ô muscle hoặc tạo khoảng cách bất thường giữa hàng phím; chỉ cho scroll khi màn hình thực sự thấp hoặc font scale lớn.
-- **Nghiệm thu:** Trên màn hình cao phổ biến, keypad và action list sử dụng không gian cân đối, không để một khoảng trắng lớn vô ích bên dưới; trên màn hình thấp vẫn truy cập được mọi phím và muscle action; kích thước vùng chạm không nhỏ hơn 44dp.
+- **Hiện trạng:** Home dùng chiều cao action theo `windowHeight`; keypad và muscle actions có chiều cao bằng nhau. Người dùng đã duyệt giao diện Home.
+- **Phạm vi:** Hoàn tất cân chỉnh Home; kiểm tra device-native tiếp tục riêng trong UI-02.
+- **Nghiệm thu:** Web preview xác nhận keypad và action list đồng chiều cao, mọi phím/nút truy cập được; thiết kế Home được người dùng chấp thuận.
 - **Phụ thuộc:** UI-02.
-- **Trạng thái:** Chờ review.
+- **Trạng thái:** Done; Android device check được theo dõi riêng ở UI-02.
 
 #### UI-04 - Hoàn thiện kích thước và hierarchy của Home
 
-- **Hiện trạng:** Current Input đã được chuyển xuống dưới Daily Total theo yêu cầu mới nhất; keypad được phóng lớn. Cần xác nhận tỷ lệ cuối trên thiết bị Android, không chỉ web.
-- **Phạm vi:** Chốt cỡ chữ/đệm của Current Input, daily total, keypad và các muscle action theo mockup và màn hình thực. Design yêu cầu total 48sp trở lên; code hiện dùng 46.
-- **Nghiệm thu:** Current Input nhỏ hơn vùng total và đủ đọc; total nổi bật màu `#E53935` với cỡ ít nhất 48sp nếu vừa cột; keypad là lưới 3x4 dễ chạm; 5 muscle action theo đúng thứ tự Arm, Chest, Leg, Back, Shoulder; input nằm dưới total bên phải như yêu cầu bổ sung.
+- **Hiện trạng:** UX-13 bỏ card Current Input; Home dùng readout phẳng, total 104px có padding phải và đổi đỏ/xanh theo ngưỡng 500. Người dùng đã duyệt giao diện.
+- **Phạm vi:** Hoàn thiện hierarchy Home; kiểm tra Android-native tiếp tục riêng trong UI-02.
+- **Nghiệm thu:** Readout phía trên keypad; total 104px, đỏ dưới 500 và xanh lá từ 500; keypad 3x4; 5 muscle action đúng thứ tự.
 - **Phụ thuộc:** UI-02, UI-03.
-- **Trạng thái:** Chờ review.
+- **Trạng thái:** Done; Android device check được theo dõi riêng ở UI-02.
 
 ### P1 - Chốt tương tác và asset
 
@@ -212,11 +289,11 @@ Các hạng mục sau chưa được implement hoặc cần quyết định sả
 
 #### UX-03 - Đồng nhất biểu tượng navigation
 
-- **Hiện trạng:** Home/History đang dùng PNG trong `assets/icon/tabs/`; Dashboard native dùng Material/SF glyph. Web tab labels không render bộ icon tương ứng.
-- **Phạm vi:** Chọn một quy ước nhất quán giữa native và web: dùng icon vector đa nền tảng hoặc local assets nằm trong `assets/icon/`; giữ trạng thái selected/unselected và tên truy cập.
+- **Hiện trạng:** Web đã có icon Dashboard dạng grid, Home/History dùng local assets; native dùng icon Dashboard Material/SF và Home/History local assets.
+- **Phạm vi:** Giữ icon nhận biết tương ứng, trạng thái selected/unselected và tên truy cập trên cả native lẫn web.
 - **Nghiệm thu:** Cả ba tab có biểu tượng nhận biết nhất quán trên Android và web; trạng thái active rõ; không dùng URL/network cho icon.
 - **Phụ thuộc:** Không, có thể ghép cùng UI-01.
-- **Trạng thái:** Chờ review.
+- **Trạng thái:** Đã implement; web preview xác nhận icon và trạng thái active.
 
 ### P1 - Chất lượng và kiểm chứng
 
@@ -279,3 +356,9 @@ Các hạng mục sau chưa được implement hoặc cần quyết định sả
 | Loại | Hạng mục | Ghi chú |
 | --- | --- | --- |
 | Thêm | Backlog implement | Bổ sung ticket P0/P1/P2 có scope, tiêu chí nghiệm thu, phụ thuộc và trạng thái review; chưa thay đổi code ứng dụng. |
+| Implement | UI-01 | Neo web tab bar xuống đáy và thêm vùng đệm cuộn cho Home, Dashboard, History; chưa xác minh trực quan do Node.js hiện tại không tương thích Expo SDK 57. |
+| Implement | UX-13 | Sắp lại Home summary, readout và keypad; làm phẳng keypad và bottom navigation native/web. TypeScript, lint, web 360x800 và thao tác nhập/xóa đạt; giao diện Home được người dùng duyệt. |
+| Implement | UX part 2 | Tăng cỡ summary, đồng bộ chiều cao keypad/muscle list và co action area theo viewport. TypeScript, lint và web 360x800 đạt; giao diện Home được người dùng duyệt. |
+| Implement | UX part 3 | Cân lại chiều cao summary/action và đặt input readout gần keypad. TypeScript, lint, web viewport và cuộn màn hình thấp đạt; giao diện Home được người dùng duyệt. |
+| Điều chỉnh | UX part 3 | Thu summary xuống 164dp và input readout còn 36dp để giảm khoảng cách từ header đến keypad theo phản hồi giao diện. |
+| Duyệt | Home UI | Người dùng xác nhận giao diện Home hoàn tất; UI-03/UI-04 đánh dấu done. Android device/emulator check vẫn mở tại UI-02. |

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomTabInset, Colors, MaxContentWidth } from '@/constants/theme';
+import { BottomTabInset, Colors, MaxContentWidth, WebTabInset } from '@/constants/theme';
 import { loadEntries, MUSCLE_GROUPS, type MuscleId, type WorkoutEntry } from '@/data/gym-storage';
 
 const muscleIcons: Record<MuscleId, number> = {
@@ -67,7 +67,7 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.light.background },
-  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', padding: 20, paddingBottom: BottomTabInset + 24 },
+  content: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', padding: 20, paddingBottom: BottomTabInset + WebTabInset + 24 },
   eyebrow: { color: Colors.light.accent, fontSize: 11, fontWeight: '800' },
   title: { color: Colors.light.ink, fontSize: 32, fontWeight: '800', marginTop: 4, marginBottom: 22 },
   metrics: { flexDirection: 'row', gap: 8, marginBottom: 28 },

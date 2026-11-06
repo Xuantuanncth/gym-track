@@ -6,21 +6,18 @@ import {
     TabTrigger,
     TabTriggerSlotProps,
 } from 'expo-router/ui';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
 
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
-
-    import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Colors, MaxContentWidth } from '@/constants/theme';
 import type { Href } from 'expo-router';
 
 export default function AppTabs() {
   return (
-    <Tabs>
+    <Tabs style={styles.tabs}>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
-              <TabTrigger name="dashboard" href={'/dashboard' as Href} asChild>
+          <TabTrigger name="dashboard" href={'/dashboard' as Href} asChild>
             <TabButton>Dashboard</TabButton>
           </TabTrigger>
           <TabTrigger name="home" href="/" asChild>
@@ -36,54 +33,107 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const scheme = useColorScheme();
+  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const iconColor = isFocused ? colors.accent : colors.textSecondary;
+
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
-          {children}
-        </ThemedText>
-      </ThemedView>
+    <Pressable
+      {...props}
+      accessibilityRole="tab"
+      style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
+      {children === 'Dashboard' ? (
+        <View style={styles.dashboardIcon}>
+          <View style={[styles.dashboardSquare, { backgroundColor: iconColor }]} />
+          <View style={[styles.dashboardSquare, { backgroundColor: iconColor }]} />
+          <View style={[styles.dashboardSquare, { backgroundColor: iconColor }]} />
+          <View style={[styles.dashboardSquare, { backgroundColor: iconColor }]} />
+        </View>
+      ) : (
+        <Image
+          source={children === 'Home'
+            ? require('@/assets/icon/tabs/home.png')
+            : require('@/assets/icon/tabs/explore.png')}
+          tintColor={iconColor}
+          style={styles.tabIcon}
+          resizeMode="contain"
+        />
+      )}
+      <Text style={[styles.tabLabel, { color: iconColor }]}>{children}</Text>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
+  const scheme = useColorScheme();
+  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+    <View
+      {...props}
+      style={[
+        styles.tabListContainer,
+        { backgroundColor: colors.background, borderTopColor: colors.backgroundSelected },
+      ]}>
+      <View style={styles.innerContainer}>
         {props.children}
-      </ThemedView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  tabs: {
+    flex: 1,
+  },
   tabListContainer: {
     position: 'absolute',
+    bottom: 0,
+    left: 0,
     width: '100%',
-    padding: Spacing.three,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   innerContainer: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
     flexDirection: 'row',
     alignItems: 'center',
-    flexGrow: 1,
-    gap: Spacing.two,
+    width: '100%',
     maxWidth: MaxContentWidth,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  dashboardIcon: {
+    width: 20,
+    height: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignContent: 'space-between',
+    padding: 2,
+  },
+  dashboardSquare: {
+    width: 7,
+    height: 7,
+    borderRadius: 1,
+  },
+  tabIcon: {
+    width: 20,
+    height: 20,
+  },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.7,
-  },
-  tabButtonView: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
   },
 });

@@ -10,8 +10,10 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      disableIndicator
+      iconColor={{ default: colors.textSecondary, selected: colors.accent }}
+      indicatorColor={colors.background}
+      labelStyle={{ default: { color: colors.textSecondary }, selected: { color: colors.accent } }}>
       <NativeTabs.Trigger name="dashboard">
         <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon md="dashboard" sf="chart.bar" />
